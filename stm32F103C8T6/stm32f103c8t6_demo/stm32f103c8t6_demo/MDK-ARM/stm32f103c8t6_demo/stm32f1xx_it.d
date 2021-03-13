@@ -28,3 +28,5 @@ stm32f103c8t6_demo\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx
 stm32f103c8t6_demo\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 stm32f103c8t6_demo\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 stm32f103c8t6_demo\stm32f1xx_it.o: ../Inc/stm32f1xx_it.h
+stm32f103c8t6_demo\stm32f1xx_it.o: ../Inc/usart.h
+stm32f103c8t6_demo\stm32f1xx_it.o: C:\Program Files (x86)\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

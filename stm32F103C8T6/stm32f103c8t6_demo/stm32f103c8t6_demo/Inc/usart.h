@@ -35,8 +35,8 @@ extern UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN Private defines */
 
-#define UART1_BUFF_LEN 1024
-#define UART2_BUFF_LEN 1024
+#define UART1_BUFF_SIZE 1024
+#define UART2_BUFF_SIZE 1024
 
 /* USER CODE END Private defines */
 
@@ -44,6 +44,18 @@ void MX_USART1_UART_Init(void);
 void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+
+
+extern uint8_t uart1_buff[UART1_BUFF_SIZE];
+extern uint8_t uart2_buff[UART2_BUFF_SIZE];
+extern uint8_t uart1_tx_buff[UART1_BUFF_SIZE];
+extern uint8_t uart2_tx_buff[UART2_BUFF_SIZE];
+extern uint8_t uart1_rx_buff[UART1_BUFF_SIZE];
+extern uint8_t uart2_rx_buff[UART2_BUFF_SIZE];
+extern uint16_t uart1_rx_len;
+extern uint16_t uart2_rx_len;
+extern uint8_t flag_uart1_recv;
+extern uint8_t flag_uart2_recv;
 
 /* USER CODE END Prototypes */
 

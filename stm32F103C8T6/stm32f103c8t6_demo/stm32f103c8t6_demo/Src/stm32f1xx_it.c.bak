@@ -316,7 +316,7 @@ void USART2_IRQHandler(void)
 		HAL_UART_Receive_DMA(&huart2, uart2_rx_buff, UART2_BUFF_SIZE);//重新打开DMA接收
 		
 		
-		printf("get data:[%s \r\n", uart2_rx_buff);
+		printf("get data\r\n");
 		}
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);

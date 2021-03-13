@@ -96,18 +96,38 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 	//();
+	HAL_TIM_Base_Start_IT(&htim1);
+	HAL_TIM_Base_Start_IT(&htim2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+	
+	
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
-		printf("2222\r\n");
-		HAL_Delay(1000);
+//		printf("2222\r\n");
+//		HAL_Delay(1000);
+//		printf("333333333333333\r\n");
+		uint16_t send_len = 700;
+		const uint16_t DELAY_TIME = 50;
+		for(uint8_t i = 0; i < 10;i++){
+			memset(uart1_tx_buff, i+47, UART1_BUFF_SIZE);
+			for(uint16_t j = 0; j < send_len; j++){
+					if(j % 100 == 0){
+						uart1_tx_buff[j] = '\n';
+					}
+			}
+			HAL_UART_Transmit_DMA(&huart1, uart1_tx_buff, send_len);
+			HAL_Delay(DELAY_TIME);
+			HAL_UART_Transmit(&huart2, uart1_tx_buff, 10, 1000);
+		}
+
+		
   }
 	
   /* USER CODE END 3 */

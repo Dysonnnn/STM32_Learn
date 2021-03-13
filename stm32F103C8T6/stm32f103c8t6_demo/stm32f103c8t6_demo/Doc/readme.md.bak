@@ -1,0 +1,15 @@
+20210313
+软件仿真设置：
+Option-->Debug
+原来的配置：
+(*)Use simulator
+Dialog DLL[DCM.DLL] Paramter[-pCM3]
+
+
+修改后的配置：
+(*)Use simulator
+Dialog DLL[DARMSTM.DLL] Paramter[-pSM32F103C8]
+
+
+
+

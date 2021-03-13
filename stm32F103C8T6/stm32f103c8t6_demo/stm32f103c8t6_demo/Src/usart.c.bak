@@ -23,8 +23,17 @@
 /* USER CODE BEGIN 0 */
 
 
-uint16_t uart1_buff[UART1_BUFF_LEN];
-uint16_t uart2_buff[UART2_BUFF_LEN];
+uint8_t uart1_buff[UART1_BUFF_LEN];
+uint8_t uart2_buff[UART2_BUFF_LEN];
+uint8_t uart1_tx_buff[UART1_BUFF_LEN];
+uint8_t uart2_tx_buff[UART2_BUFF_LEN];
+uint8_t uart1_rx_buff[UART1_BUFF_LEN];
+uint8_t uart2_rx_buff[UART2_BUFF_LEN];
+uint16_t uart1_rx_len;
+uint16_t uart2_rx_len;
+uint8_t flag_uart1_recv = 0;
+uint8_t flag_uart2_recv = 0;
+
 
 //加入以下代码,支持printf函数,而不需要选择use MicroLIB	  
 #if 1
@@ -46,7 +55,7 @@ void _sys_exit(int x)
 int fputc(int ch, FILE *f)
 {      
 	while((USART1->SR&0X40)==0){};//循环发送,直到发送完毕   
-    USART1->DR = (uint8_t) ch;      
+    USART1->DR = (uint8_t) ch; //使用串口1打印数据     
 	return ch;
 }
 #endif 
@@ -227,7 +236,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspInit 1 */
-	__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);          //使能IDLE中断
+		__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);          //使能IDLE中断
  		HAL_UART_Receive_DMA(&huart1, uart1_buff, UART1_BUFF_LEN);
   /* USER CODE END USART2_MspInit 1 */
   }

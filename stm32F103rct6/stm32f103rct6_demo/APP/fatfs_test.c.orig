@@ -1,0 +1,192 @@
+#include "fatfs_test.h"
+/*
+写文件测试，填充emmc空间
+函数参考自 安富莱demo
+
+*/
+void WriteFileTest(char *path)
+{
+	/* 本函数使用的局部变量占用较多，请修改启动文件，保证堆栈空间够用 */
+	FRESULT result;
+//	FATFS fs;
+	FIL file;
+	DIR DirInf;
+	uint32_t bw;
+	uint32_t i;//,k;
+	uint32_t runtime1,runtime2,timelen;
+	uint8_t err = 0;
+    float f_eMMC_IdleRate = 0.0f;
+	char TestFileName[30];
+	static uint8_t s_ucTestSn = 0;
+    char c_year[5] = {"/2020"};
+    char c_month[10] = {"/2020/05"};
+    char c_date[17] = {"/2020/05/01"};
+    
+    if(sscanf(path, "/%4s/%2s/%2s", &c_year[1], &c_month[6], &c_date[9]) < 0){
+        printf(">>获取路径信息失败，路径信息设置为默认值 /2020/05/01");
+        sprintf(c_year, "/%s", "2020");
+        sprintf(c_month, "/%s/%s", "2020", "05");
+        sprintf(c_date, "/%s/%s/%s", "2020", "05", "01");
+        
+    }
+    /*  获取输入的时间    */
+    c_month[3] = c_year[3];  /*  获取 X, /20X0 */
+    c_month[4] = c_year[4];  /*  获取 X, /202X */
+    c_date[3] = c_year[3];   /*  获取 X, /20X0 */
+    c_date[4] = c_year[4];   /*  获取 X, /202X */
+    c_date[6] = c_month[6];  /*  获取 X, /2020/X0 */
+    c_date[7] = c_month[7];  /*  获取 X, /2020/0X */  
+
+    
+    
+    f_eMMC_IdleRate = Get_eMMC_IdleRate();
+    if(f_eMMC_IdleRate < 0.2f){
+        printf(">> eMMC Idle Rate is %f%% ,need not make files...\r\n", f_eMMC_IdleRate*100);
+        return;
+    }
+    
+	for (i = 0; i < sizeof(g_TestBuf); i++)
+	{
+		g_TestBuf[i] = (i / 512) + '0';
+	}
+
+#if 0    
+  	/* 挂载文件系统 */
+	result = f_mount(&fs, "0:", 0);			/* Mount a logical drive */
+	if (result != FR_OK)
+	{
+		printf("挂载文件系统失败 (%s)\r\n", p_FR_Table[result]);
+	}
+#endif    
+
+    
+
+    /* 1.创建年目录 */    
+    result = f_mkdir(c_year); 		/*创建一级年目录"/2019"*/
+    if((result != FR_OK) && (result != FR_EXIST)) { /*创建年目录失败*/
+        printf("f_mkdir year error: (%s)\r\n", p_FR_Table[result]);
+        HAL_Delay(50);
+        f_mkdir(c_year);	/*再次创建年目录*/
+    }
+    
+    /* 2.创建月目录 */        
+    result = f_mkdir(c_month);		/*创建二级月目录"/2019/1"*/
+    if((result != FR_OK) && (result != FR_EXIST)) { /*创建月目录失败*/
+        printf("f_mkdir month error: (%s)\r\n", p_FR_Table[result]);
+        HAL_Delay(50);
+        f_mkdir(c_month);	/*再次创建月目录*/
+    }
+    /* 3.创建日目录 */    
+    result = f_mkdir(c_date);		/*创建三级日目录"/2019/01/01"*/
+    if((result != FR_OK) && (result != FR_EXIST)) { /*创建日目录失败*/
+        printf("f_mkdir date error: (%s)\r\n", p_FR_Table[result]);
+        HAL_Delay(50);
+        f_mkdir(c_date);	/*再次创建日目录*/
+    }
+    
+    
+	result = f_opendir(&DirInf, c_date); /* 如果不带参数，则从当前目录开始 */
+	if (result != FR_OK)
+	{
+		printf("打开目录 [%s] 失败 (%s)\r\n", c_date, p_FR_Table[result]);
+        //f_close();
+		return;
+	}
+
+	/* 打开文件 */
+	sprintf(TestFileName, "%s/Speed%03d.txt", c_date, s_ucTestSn++);		/* 每写1次，序号递增 */
+	result = f_open(&file, TestFileName, FA_CREATE_ALWAYS | FA_WRITE);
+    if (result != FR_OK)
+	{
+		printf("打开文件 [%s/Speed%03d.txt] 失败 (%s)\r\n", c_date, s_ucTestSn,\
+                p_FR_Table[result]);
+        f_close(&file);
+		return;            
+	}
+    
+
+	/* 写一串数据 */
+	printf("开始写文件%s %dKB ...\r\n", TestFileName, TEST_FILE_LEN / 1024);
+	runtime1 = n_systick_get_time;//bsp_GetRunTime();	/* 读取系统运行时间 */
+	for (i = 0; i < TEST_FILE_LEN / BUF_SIZE; i++){
+		result = f_write(&file, g_TestBuf, sizeof(g_TestBuf), &bw);
+		if (result == FR_OK) {
+			if (((i + 1) % 80) == 0){
+				printf(".");
+			}
+		}else {
+			err = 1;
+			printf("%s文件写失败(%s)\r\n", TestFileName, p_FR_Table[result]);
+			break;
+		}
+	}
+	runtime2 = n_systick_get_time;// bsp_GetRunTime();	/* 读取系统运行时间 */
+
+	if (err == 0){
+		timelen = (runtime2 - runtime1);
+		printf("\r\n  写耗时 : %dms   平均写速度 : %uldB/S (%dKB/S,%dMB/S）\r\n",
+			timelen,
+			(TEST_FILE_LEN * 1000) / timelen,
+			((TEST_FILE_LEN / 1024) * 1000) / timelen,   
+            ((TEST_FILE_LEN / 1024 /1024) * 1000) / timelen);
+    }
+
+	f_close(&file);		/* 关闭文件*/
+
+#ifdef  DEBUG_READ_FILE
+	/* 开始读文件测试 */
+	result = f_open(&file, TestFileName, FA_OPEN_EXISTING | FA_READ);
+	if (result !=  FR_OK)
+	{
+		printf("没有找到文件: %s\r\n", TestFileName);
+		return;
+	}
+
+	printf("开始读文件 %dKB ...\r\n", TEST_FILE_LEN / 1024);
+	runtime1 = bsp_GetRunTime();	/* 读取系统运行时间 */
+	for (i = 0; i < TEST_FILE_LEN / BUF_SIZE; i++)
+	{
+		result = f_read(&file, g_TestBuf, sizeof(g_TestBuf), &bw);
+		if (result == FR_OK)
+		{
+			if (((i + 1) % 8) == 0)
+			{
+				printf(".");
+			}
+
+			/* 比较写入的数据是否正确，此语句会导致读卡速度结果降低到 3.5MBytes/S */
+			for (k = 0; k < sizeof(g_TestBuf); k++)
+			{
+				if (g_TestBuf[k] != (k / 512) + '0')
+				{
+				  	err = 1;
+					printf("Speed1.txt 文件读成功，但是数据出错\r\n");
+					break;
+				}
+			}
+			if (err == 1)
+			{
+				break;
+			}
+		}
+		else
+		{
+			err = 1;
+			printf("Speed1.txt 文件读失败(%s)\r\n", p_FR_Table[result]);
+			break;
+		}
+	}
+	runtime2 = bsp_GetRunTime();	/* 读取系统运行时间 */
+
+	if (err == 0)
+	{
+		timelen = (runtime2 - runtime1);
+		printf("\r\n  读耗时 : %dms   平均读速度 : %dB/S (%dKB/S)\r\n", timelen,
+			(TEST_FILE_LEN * 1000) / timelen, ((TEST_FILE_LEN / 1024) * 1000) / timelen);
+	}
+    /* 关闭文件*/
+	f_close(&file);
+#endif    
+	/* 卸载文件系统 */
+	// f_mount(NULL, "0:", 0);
+}

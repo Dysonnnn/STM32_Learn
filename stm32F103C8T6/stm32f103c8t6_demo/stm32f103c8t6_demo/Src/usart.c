@@ -173,7 +173,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_NVIC_EnableIRQ(USART1_IRQn);
   /* USER CODE BEGIN USART1_MspInit 1 */
 		__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);          //使能IDLE中断
-		HAL_UART_Receive_DMA(&huart1, uart1_buff, UART1_BUFF_SIZE);
+		HAL_UART_Receive_DMA(&huart1, uart1_rx_buff, UART1_BUFF_SIZE);
   /* USER CODE END USART1_MspInit 1 */
   }
   else if(uartHandle->Instance==USART2)
@@ -237,7 +237,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspInit 1 */
 		__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);          //使能IDLE中断
- 		HAL_UART_Receive_DMA(&huart1, uart1_buff, UART1_BUFF_SIZE);
+ 		HAL_UART_Receive_DMA(&huart2, uart2_rx_buff, UART2_BUFF_SIZE);
   /* USER CODE END USART2_MspInit 1 */
   }
 }
